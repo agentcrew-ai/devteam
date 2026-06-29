@@ -42,7 +42,7 @@ Then pin to a tagged release so your agents don't silently move underneath you:
 ```bash
 cd .devteam
 git fetch --tags
-git checkout <latest-tag>   # check: git tag --sort=-creatordate (e.g. v1.2.0). Do NOT use standards-v1.0.0 — it's an April tag that predates the roster.
+git checkout <latest-tag>   # check: git tag --sort=-creatordate (e.g. v0.1.0)
 cd ..
 git add .devteam
 git commit -m "chore: pin devteam to <latest-tag>"
@@ -185,7 +185,7 @@ When the devteam releases new standards, agents, or skills, the consumer pulls t
 ```bash
 cd .devteam
 git fetch --tags
-git checkout <new-tag>       # e.g., standards-v1.1.0, or a non-standards release tag
+git checkout <new-tag>       # e.g., v0.2.0
 cd ..
 git add .devteam
 git commit -m "chore: upgrade devteam to <new-tag>"
