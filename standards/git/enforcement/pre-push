@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# pre-push — refuse any push whose destination ref is the repo's prod branch.
+# git passes: argv = (<remote-name> <remote-url>); stdin lines =
+#   <local-ref> <local-sha> <remote-ref> <remote-sha>
+# Prod is resolved dynamically per-repo (main on most, master on some).
+# This guards the HUMAN's accidental direct push. It is not agent-specific
+# (the agent guard is the Claude Code PreToolUse hook, guard-prod-push.sh).
+
+set -euo pipefail
+
+# Resolve prod for THIS repo. Prefer origin/HEAD; fall back to local symbolic HEAD.
+prod="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@' || true)"
+[ -n "$prod" ] || prod="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+[ -n "$prod" ] || prod="main"
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # remote_ref looks like refs/heads/<branch>; normalize.
+  remote_branch="${remote_ref#refs/heads/}"
+  if [ "$remote_branch" = "$prod" ]; then
+    # Deleting prod is also forbidden — no carve-out for a delete push.
+    echo "" >&2
+    echo "BLOCKED: push to prod branch '$prod' is forbidden by the" >&2
+    echo "         Git Branching & PR-Flow standard. Prod is PR-only." >&2
+    echo "         Open a PR from your topic branch and let a human merge." >&2
+    echo "         (Genuine emergency override: git push --no-verify — you own that.)" >&2
+    echo "" >&2
+    exit 1
+  fi
+done
+
+exit 0
