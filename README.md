@@ -31,7 +31,7 @@ Read **[`skills/project-bootstrap.md`](skills/project-bootstrap.md)** for the fu
 
 ```
 devteam/
-├── agents/          # 11 agent definitions
+├── .claude/agents/  # 11 agent definitions
 ├── skills/          # session rituals, project bootstrap, agent build, git workflow, recovery
 ├── standards/       # enforcement-gated, versioned conventions (api, data, security, git, ci-cd, ...)
 ├── EXTENSION.md     # the overlay + contribution contract

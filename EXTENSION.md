@@ -17,11 +17,11 @@ Your additions live **outside** `.devteam/`, in an overlay that mirrors core's d
 ```
 your-repo/
 ├── .devteam/                    # core submodule — pinned, read-only
-│   ├── agents/                  # core's generic roster
+│   ├── .claude/agents/          # core's generic roster
 │   ├── skills/
 │   └── standards/
 └── .devteam-overlay/            # YOUR layer — additive + overrides, never touches core
-    ├── agents/                  # new roles, or overrides of a core agent's lane
+    ├── .claude/agents/          # new roles, or overrides of a core agent's lane
     ├── skills/
     ├── standards/               # new stacks (docker, bare-metal, your CI tool) or overrides
     └── context/                 # entity-private: memory, work-orders, decisions — NEVER goes to core
@@ -36,7 +36,7 @@ If your overlay produces something **generic** — a new stack standard, a sharp
 A consumer resolves each file **by relative path**, overlay winning:
 
 - **Overlay path not present in core → it ADDS.** A `standards/ci-cd/docker-compose.md` that core doesn't ship becomes a new standard for your projects.
-- **Overlay path also present in core → it OVERRIDES.** An `agents/backend.md` in your overlay replaces core's `backend.md` lane for your projects.
+- **Overlay path also present in core → it OVERRIDES.** A `.claude/agents/backend.md` in your overlay replaces core's `backend.md` lane for your projects.
 
 This is the same precedence Claude Code already uses when a project-level `.claude/agents/` entry shadows a user-level one — generalized to standards and skills. When you override rather than add, prefer overriding the *smallest* unit (one standard, one agent) so you keep inheriting core's improvements everywhere else.
 
