@@ -1,6 +1,6 @@
 ---
-version: 0.1.0
-updated: 2026-06-28
+version: 0.2.0
+updated: 2026-07-14
 breaking: false
 ---
 
@@ -22,7 +22,17 @@ A delivery path is compliant when it guarantees all six:
 
 5. **Secrets injected at deploy time, never baked into the artifact.** Secret *values* live in the CI tool's encrypted variable store or a secrets manager, are injected when the workload starts, and are authoritative over any in-repo defaults. Decrypted material never persists in the build workspace — it is removed before the action exits. In-repo config holds dev/local defaults only.
 
-6. **An explicit ownership split.** The repo states what the *environment owner* provides (the namespace/project, the deploy identity, base networking, TLS) versus what the *app team* provides (the build definition, the deploy manifest/chart, the per-env values, the pipeline file). No step assumes a human will "just do it in the console."
+6. **An explicit ownership split.** The repo states what the *environment owner* provides (the namespace/project, the deploy identity, base networking, TLS, and the CI tool's VCS integration for the repo's org/namespace) versus what the *app team* provides (the build definition, the deploy manifest/chart, the per-env values, the pipeline file). No step assumes a human will "just do it in the console."
+
+## Onboarding a repo to the CI tool
+
+A pipeline can only build a repo the CI tool can *reach*. Before authoring one, confirm the tool's VCS integration is authorized for that repo's org/namespace — this is a **pre-provisioned prerequisite owned by the environment owner** (guarantee 6), not something to re-discover per pipeline.
+
+- **Verify reachability first.** Confirm the CI tool's VCS app/integration is installed on `<org>` with access to the target repo — and, for a pipeline that writes back (commit status, in-repo pipeline-as-code), that it carries the write scope those actions need. Treat this as a one-time onboarding check, not a per-pipeline unknown.
+- **If it can't see the repo, the environment owner authorizes it.** Installing or extending the CI tool's VCS app to `<org>` (or the specific repo) is an environment-owner action — the same lane that provisions namespaces and deploy identities. The app team does not route around it.
+- **A tool-hosted git mirror is a fallback, not the default.** When the native VCS integration genuinely cannot be installed, mirroring the repo into the CI tool is the escape hatch — never the first move. Reaching for a mirror while a direct integration is available duplicates source and adds sync plumbing the deploy path shouldn't own.
+
+Record the concrete answer for your environment — which app/integration, which org, what scope — in your overlay or project memory, not here. Core states the precondition; the entity holds *who is integrated with what*.
 
 ## Environment promotion
 
@@ -34,6 +44,7 @@ A delivery path is compliant when it guarantees all six:
 
 - **Local `docker build && docker push` or hand-`kubectl apply`** of a workload — breaks guarantees 1 and 3.
 - **A pipeline definition the CI tool reads from outside the repo** (a "remote" definition) when the tool also supports in-repo pipeline-as-code — the remote form routinely fails to trigger and needs write-back access the deploy identity shouldn't have. Prefer the in-repo, auto-synced form.
+- **Re-deriving whether the CI tool can reach a repo, per pipeline** — the VCS integration is an environment-owner prerequisite provisioned once (see [*Onboarding a repo to the CI tool*](#onboarding-a-repo-to-the-ci-tool)). Assuming a tool-hosted git mirror is required when a direct VCS integration already exists wastes a session each time and adds sync plumbing the deploy path shouldn't own.
 - **Index-based array overrides for build metadata** (`--set env[N].value=`) — a null array element produces a manifest the orchestrator rejects. Use a *named* value.
 - **Instance values committed into the standard** — pipeline ids, namespace names, item UUIDs, repo hashes are consuming-repo config. The standard defines shape; the repo holds values.
 
