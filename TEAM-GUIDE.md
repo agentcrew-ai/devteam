@@ -8,39 +8,39 @@ The model in one line: **the base team is generic and shared by everyone; your t
 
 The base team (this repo, `devteam`) is a reusable roster of **11 Claude Code subagents** plus a set of **enforcement-gated engineering standards**. The roster is the three planners — **product-manager (WHAT)**, **architect (HOW)**, **project-manager (WHO)** — four implementer lanes (**backend, frontend, data, infra-devops**), three reviewer lanes (**code-reviewer, security, test-engineer**), and a **documenter**. They never share chat context; they coordinate through **work orders** — files on disk that pass a task from one lane to the next. The full operating rules (the mantra, foreman triage, HITL checkpoints, WO format) live in [`CLAUDE.md`](CLAUDE.md).
 
-Everything in the base team is **generic on purpose**. It names no client, no cluster, no stack you happen to run, no decision your team made last quarter. That is what lets every team share it. It is also what makes it useless on its own for real work — a generic architect doesn't know your Moqui quirks, and a generic infra lane doesn't know your registry. The knowledge that makes the team valuable *to your team* is exactly the knowledge that can't live in the base. That knowledge goes in **your layer**.
+Everything in the base team is **generic on purpose**. It names no client, no cluster, no stack you happen to run, no decision your team made last quarter. That is what lets every team share it. It is also what makes it useless on its own for real work — a generic architect doesn't know the quirks of the framework you run, and a generic infra lane doesn't know your registry. The knowledge that makes the team valuable *to your team* is exactly the knowledge that can't live in the base. That knowledge goes in **your layer**.
 
 ## 2. Stand up your team's layer repo
 
-Your team's layer is a **separate git repo** — call it `devteam-<yourteam>` (e.g. `devteam-lww`). It does two things: it **pins the base team** as a read-only submodule, and it **holds your team's overlay** — your SME agents, your stack standards, and your private context. Every one of your projects then consumes *the layer*, not the base directly. Set your context once; every project inherits it.
+Your team's layer is a **separate git repo** — call it `devteam-<yourteam>`. It does two things: it **pins the base team** as a read-only submodule, and it **holds your team's overlay** — your SME agents, your stack standards, and your private context. Every one of your projects then consumes *the layer*, not the base directly. Set your context once; every project inherits it.
 
 > **Shared layer vs. per-repo overlay.** You can skip the layer repo and drop the base team straight into one project with a small overlay folder beside it (that's the single-repo path in [`ONBOARDING.md`](ONBOARDING.md) + [`EXTENSION.md`](EXTENSION.md)). That's fine for one repo or a spike. The moment you have a second repo, the per-repo approach starts **duplicating your context and drifting** — the exact failure this system exists to prevent. A team with more than one repo should stand up the shared layer. Start per-repo only if you're truly single-repo today, and graduate when you aren't.
 
 ### The layer repo's shape
 
 ```
-devteam-lww/                     # YOUR team's layer repo
+devteam-<yourteam>/              # YOUR team's layer repo
 ├── .devteam/                    # base team — pinned submodule, READ-ONLY from here
 │   ├── .claude/agents/          #   the 11 generic agents
 │   ├── skills/
 │   └── standards/               #   generic, versioned standards
 ├── .claude/agents/              # OVERLAY: your SME agents + overrides of a base lane
 ├── skills/                      # OVERLAY: your team's skills (optional)
-├── standards/                   # OVERLAY: your stacks (Moqui, your CI tool) + overrides
+├── standards/                   # OVERLAY: your stacks + your CI tool + overrides
 ├── context/                     # PRIVATE: memory, decisions, who-owns-what — NEVER upstreamed
 └── CLAUDE.md                    # your team's operating instructions; imports .devteam/CLAUDE.md
 ```
 
 The overlay **mirrors the base's directory shape**, and precedence is resolved **by relative path, overlay winning** — this is the same rule Claude Code already uses when a project agent shadows a user-level one, generalized to standards and skills:
 
-- **A path the base doesn't have → it ADDS.** `standards/moqui/` becomes a new standard for your projects.
+- **A path the base doesn't have → it ADDS.** `standards/<your-framework>/` becomes a new standard for your projects.
 - **A path the base also has → it OVERRIDES.** `.claude/agents/backend.md` in your overlay replaces the base's backend lane *for your team only*. Override the **smallest** unit you can (one agent, one standard) so you keep inheriting base improvements everywhere else.
 
 The full precedence and boundary rules are in [`EXTENSION.md`](EXTENSION.md) — read it once before you add anything to the overlay.
 
 ### Creating the layer repo
 
-Run from an empty new repo (`devteam-lww`):
+Run from an empty new repo (`devteam-<yourteam>`):
 
 ```bash
 # 1. Pin the base team as a read-only submodule at .devteam
@@ -59,23 +59,23 @@ Pin to a **tag**, never to `develop` — tags carry the promoted, hardened stand
 
 ### How a project consumes the layer
 
-Each of your projects (`lww-www`, `cmp`, …) adds **the layer** as its submodule — the layer brings the base along nested inside it. Agent discovery still works the way Claude Code requires: symlink each agent into the project's `.claude/agents/`, **preferring the overlay's version and falling back to the base's**:
+Each of your projects adds **the layer** as its submodule — the layer brings the base along nested inside it. Agent discovery still works the way Claude Code requires: symlink each agent into the project's `.claude/agents/`, **preferring the overlay's version and falling back to the base's**:
 
 ```bash
-# from a project root, with the layer submoduled at .devteam-lww
+# from a project root, with the layer submoduled at .devteam-<yourteam>
 mkdir -p .claude/agents
-for base in .devteam-lww/.devteam/.claude/agents/*.md; do
+for base in .devteam-<yourteam>/.devteam/.claude/agents/*.md; do
   name=$(basename "$base")
-  if [ -f ".devteam-lww/.claude/agents/$name" ]; then
-    ln -sf "../../.devteam-lww/.claude/agents/$name" ".claude/agents/$name"   # overlay wins
+  if [ -f ".devteam-<yourteam>/.claude/agents/$name" ]; then
+    ln -sf "../../.devteam-<yourteam>/.claude/agents/$name" ".claude/agents/$name"   # overlay wins
   else
-    ln -sf "../../.devteam-lww/.devteam/.claude/agents/$name" ".claude/agents/$name"
+    ln -sf "../../.devteam-<yourteam>/.devteam/.claude/agents/$name" ".claude/agents/$name"
   fi
 done
 # then symlink any overlay-only SME agents that have no base counterpart
-for ov in .devteam-lww/.claude/agents/*.md; do
+for ov in .devteam-<yourteam>/.claude/agents/*.md; do
   name=$(basename "$ov")
-  [ -e ".claude/agents/$name" ] || ln -sf "../../.devteam-lww/.claude/agents/$name" ".claude/agents/$name"
+  [ -e ".claude/agents/$name" ] || ln -sf "../../.devteam-<yourteam>/.claude/agents/$name" ".claude/agents/$name"
 done
 git add .claude/agents && git commit -m "chore: wire layer agents into .claude/agents for discovery"
 ```
@@ -86,9 +86,9 @@ Re-run that loop whenever you bump the layer pin, so new or renamed agents stay 
 
 This is where your layer earns its keep. Three kinds of knowledge, three homes:
 
-**SME roles → overlay agents (`.claude/agents/`).** When a domain needs expertise the generic lanes don't have, add an SME agent (a `moqui-engineer.md`, a `saleor-specialist.md`) or **override** a base lane with a version that knows your stack. Follow the agent format and the build discipline in [`skills/agent-build.md`](skills/agent-build.md): a scoped tool allowlist, its own memory dir, a pinned model, non-overlapping lane boundaries. Keep the WHAT/HOW/WHO mantra intact — an SME implementer is still an implementer, not a second architect.
+**SME roles → overlay agents (`.claude/agents/`).** When a domain needs expertise the generic lanes don't have, add an SME agent (a `<framework>-engineer.md`, a `<platform>-specialist.md`) or **override** a base lane with a version that knows your stack. Follow the agent format and the build discipline in [`skills/agent-build.md`](skills/agent-build.md): a scoped tool allowlist, its own memory dir, a pinned model, non-overlapping lane boundaries. Keep the WHAT/HOW/WHO mantra intact — an SME implementer is still an implementer, not a second architect.
 
-**Your stacks and rulings → overlay standards (`standards/`).** A standard is a *reusable cross-project convention* — how your team does Moqui migrations, which CI tool you deploy with, your naming rules. It gets the same treatment as a base standard: frontmatter `version`, a `standards/CHANGELOG.md` entry in your layer, `breaking: true` when a consumer must change to comply. Your agents read these the same way they read the base's — the architect reads all standards when writing a WO's Context; infra-devops reads the security + CI standards before wiring a pipeline. When your standard covers a stack the base doesn't ship, satisfy the base's generic **contract** for that class of thing (the CI/CD pattern standard states the contract every delivery path must meet) rather than inventing from scratch — see the worked example in [`EXTENSION.md`](EXTENSION.md#adding-a-new-stack-worked-example).
+**Your stacks and rulings → overlay standards (`standards/`).** A standard is a *reusable cross-project convention* — how your team does framework migrations, which CI tool you deploy with, your naming rules. It gets the same treatment as a base standard: frontmatter `version`, a `standards/CHANGELOG.md` entry in your layer, `breaking: true` when a consumer must change to comply. Your agents read these the same way they read the base's — the architect reads all standards when writing a WO's Context; infra-devops reads the security + CI standards before wiring a pipeline. When your standard covers a stack the base doesn't ship, satisfy the base's generic **contract** for that class of thing (the CI/CD pattern standard states the contract every delivery path must meet) rather than inventing from scratch — see the worked example in [`EXTENSION.md`](EXTENSION.md#adding-a-new-stack-worked-example).
 
 **Private project info → `context/` (never leaves your layer).** Client and project names, cluster/registry/namespace names, secret *locations* (never values), decision logs, work orders, who-owns-what, STATE/backlog for the layer itself. This is the material the base team must never contain. It stays in your layer's `context/` and is **never** eligible to be upstreamed. The boundary table in [`EXTENSION.md`](EXTENSION.md#what-is-core-generic-vs-overlay-entity) is the definitive "core vs. overlay" test — when unsure which side a fact belongs on, that table decides.
 
@@ -128,7 +128,7 @@ The system improves in **both** directions, and this is a standing duty, not a n
 
 The gate is what keeps the public base clean: an overlay file may be upstreamed **only if it is generic** — no infrastructure specifics, no identities (org/client/employee/project names), no secrets or secret locations, no per-machine paths, no internal history ("we learned this on <date>"), and it must be **versioned** (frontmatter bump + `CHANGELOG.md` entry). The full checklist is [the scrub gate in `EXTENSION.md`](EXTENSION.md#the-scrub-gate--what-may-go-upstream), and the PR flow is in [`CONTRIBUTING.md`](CONTRIBUTING.md). State the rule, not the war story: the lesson goes up, the context that made it concrete stays in your `context/`.
 
-**How a contributor (yes, an LWW engineer) expands the base:** open a feature branch on the base repo, add or edit the generic file with its version bump + changelog entry, run it through the scrub-gate checklist yourself, and open a PR. A maintainer reviews it against the same checklist and — for a standards change — treats the version bump as the approval event. Entity-specific material never makes this trip; if the scrub gate strips so much that nothing generic is left, it was overlay material, and it stays in your layer. Net: every team is both a **consumer** of the base and a **scout** improving it.
+**How a contributor expands the base:** open a feature branch on the base repo, add or edit the generic file with its version bump + changelog entry, run it through the scrub-gate checklist yourself, and open a PR. A maintainer reviews it against the same checklist and — for a standards change — treats the version bump as the approval event. Entity-specific material never makes this trip; if the scrub gate strips so much that nothing generic is left, it was overlay material, and it stays in your layer. Net: every team is both a **consumer** of the base and a **scout** improving it.
 
 ## Where to go next
 

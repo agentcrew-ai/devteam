@@ -2,6 +2,14 @@
 
 Every standards change is a version event: bump the affected file's frontmatter `version` and add an entry here. Consumers pin to a tag and read this to know what moved on upgrade. See [`../EXTENSION.md`](../EXTENSION.md) for the scrub gate that governs what may enter core.
 
+## v0.3.1 — 2026-08-29 — retroactive scrub of the public core
+
+Patch. Three standards had entity-specific material that the scrub gate in [`../EXTENSION.md`](../EXTENSION.md) already forbids but that predated it being applied retroactively. Nothing behavioural changed, so a consumer pinned to v0.3.0 upgrades without edits.
+
+- `security/sops-age.md` — **v1.0.0 → v1.0.1.** The example `.sops.yaml` used a maintainer's first name as a key anchor; it is now `&maintainer`. The break-glass backup destination named a specific password manager; it now names the class of tool. Removed a dated internal ruling from the one-recipient-per-repo rule — the rule stands on its own without the war story.
+- `security/agent-secrets.md` — **v1.1.0 → v1.1.1.** Removed the dated approval and internal ruling number from the CI-store carve-out. The carve-out is unchanged.
+- `knowledge/meta-logging-and-vault-writes.md` — **v1.0.0 → v1.0.1.** The sandbox switch was illustrated with a product-specific environment-variable prefix; it now uses `<PREFIX>`. Replaced an unexplained private cross-reference key name with the generic term "identifier".
+
 ## v0.3.0 — 2026-08-29 — Simplified Technical English folded into writing voice
 
 Additive. `writing/voice.md` gains precision and density rules; nothing existing was removed or reworded, so a consumer pinned to v0.2.0 upgrades without edits.

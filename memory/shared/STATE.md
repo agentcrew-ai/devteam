@@ -6,7 +6,7 @@ Last updated: 2026-08-29
 
 ## Current work
 
-- **Branch `standards/voice-and-mcp-adoption`** — Order 015 landed: `standards/writing/voice.md` v1.0.0 → v1.1.0, folding in ASD-STE100 Simplified Technical English plus four density rules that had been proposed and never versioned. CHANGELOG entry added as v0.3.0. **Committed locally, not pushed, not merged** — John approves version bumps. Run note below.
+- **Branch `standards/voice-and-mcp-adoption`** — Order 015 landed: `standards/writing/voice.md` v1.0.0 → v1.1.0, folding in ASD-STE100 Simplified Technical English plus four density rules that had been proposed and never versioned. CHANGELOG entry added as v0.3.0. **Committed locally, not pushed, not merged** — the maintainer approves version bumps. Run note below.
 
 ### Order 015 run note — what we took from STE, what we left
 
@@ -29,9 +29,11 @@ Source: <https://www.asd-ste100.org/about_STE.html> (Issue 9, Jan 2025: 53 writi
 
 ## Open items / decisions for the user
 
-- **Core repo is PRIVATE.** `agentcrew-ai/devteam` is `private: true` — John believed it was public. Handoff to the LWW team is blocked until this is resolved: either flip core to public (requires a scrub-confirm that core is clean of private context) or grant LWW read access. This is overdue task **T-1T** ("Share AI Dev Team onboarding with team"). **Do not flip visibility without explicit go-ahead** — it's a one-way outward-facing action.
+- **Core repo is PUBLIC.** Visibility was flipped and a retroactive scrub audit was run against the working tree, every branch, and the full git history. No credentials, keys, tokens, private IPs, or private hostnames were found in tree or history. Adopting-team identifiers, one private task reference, and several dated internal rulings were found and removed on branch `chore/public-scrub`. Two residual items are recorded below and need a maintainer decision.
 - **`develop` is behind `main`.** PR #1 (`standards/backup-dr`, v0.2.0) merged straight to `main`, bypassing `develop`. `develop` lacks the backup-dr standard. Reconcile: merge/rebase `main` → `develop` so the integration branch isn't stale, and fix the flow so future work goes feature → develop → main.
-- **backup-dr standard is still `PROPOSED`.** Not yet approved/adopted. Needs John's version-event sign-off.
+- **backup-dr standard is still `PROPOSED`.** Not yet approved/adopted. Needs a version-event sign-off from the maintainer.
+- **Commit author identity is a work email address on 12 of 14 commits**, across every branch and on tag `v0.1.0`. It is visible on every commit page of a public repo. Changing it means rewriting published history — a maintainer decision, not a code change.
+- **PR #1's description is public and describes private infrastructure**, including a cross-reference to a pull request in a private repo. It is editable on GitHub without touching git history, but it is an outward-facing edit and needs an explicit go-ahead.
 - **Stale merged branch.** `origin/standards/backup-dr` can be deleted (merged via PR #1).
 
 ## Watch out for
