@@ -2,6 +2,12 @@
 
 Every standards change is a version event: bump the affected file's frontmatter `version` and add an entry here. Consumers pin to a tag and read this to know what moved on upgrade. See [`../EXTENSION.md`](../EXTENSION.md) for the scrub gate that governs what may enter core.
 
+## v0.3.0 — 2026-08-29 — Simplified Technical English folded into writing voice
+
+Additive. `writing/voice.md` gains precision and density rules; nothing existing was removed or reworded, so a consumer pinned to v0.2.0 upgrades without edits.
+
+- `writing/voice.md` — **v1.0.0 → v1.1.0.** Adopts the precision rules of [ASD-STE100 Simplified Technical English](https://www.asd-ste100.org/about_STE.html) — one word one meaning (and one thing one name), active voice with the actor named, one instruction per sentence for procedural text, a per-domain approved-term list kept in the overlay, and a ban on using one word as both noun and verb where the sentence parses two ways. Explicitly declines STE's closed ~900-word dictionary and its 20/25-word sentence caps as applied to analysis, with a section saying why: our writing has to argue and weigh, a maintenance manual does not. Adds four density rules — resolve your own references, one fact per paragraph stated once, borrowed jargon must earn its place, state the consequence or cut the paragraph — plus the rule underneath them, stop when the point is made. New Scope subsection grades how hard the precision rules bind by document type, from runbooks and agent-read order packets (hardest) to client-facing argument (lightest). Final-pass checklist expanded from six questions to ten.
+
 ## v0.2.0 — 2026-08-25 — writing voice, MCP server adoption, work intake
 
 Three new standard families, all additive. Nothing existing changed, so a consumer pinned to v0.1.0 upgrades without edits.
