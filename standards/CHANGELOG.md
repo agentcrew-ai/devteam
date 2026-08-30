@@ -2,6 +2,12 @@
 
 Every standards change is a version event: bump the affected file's frontmatter `version` and add an entry here. Consumers pin to a tag and read this to know what moved on upgrade. See [`../EXTENSION.md`](../EXTENSION.md) for the scrub gate that governs what may enter core.
 
+## v0.5.0 — 2026-08-29 — probe defaults for slow-booting containers
+
+Additive. `infra/helm.md` gains concrete probe rules; nothing existing was removed or reworded, so a consumer pinned to v0.4.0 upgrades without edits.
+
+- `infra/helm.md` — **v1.0.0 → v1.1.0.** The `## Health probes` section grows from three paragraphs to six subsections. `timeoutSeconds` must be set explicitly on every probe with a floor of 3 seconds, because the Kubernetes default of 1 second is missed routinely by a healthy process on a host under I/O or scheduling pressure — a probe that times out faster than the node's worst-case scheduling latency reports the node's state as the application's. A `startupProbe` is now preferred over `initialDelaySeconds` for any container whose cold start is slow or variable, since a fixed delay is a guess at a variable number and is wrong in both directions; and once a `startupProbe` exists, `initialDelaySeconds` on readiness and liveness is dead config that must be removed. A probe's tolerance is stated as the budget it actually is, `failureThreshold` × `periodSeconds` in seconds, chosen against measured cold start rather than a round number, so a reviewer can disagree with it without doing arithmetic. Liveness must be strictly more forgiving than readiness, because readiness removing a pod from a Service is cheap and reversible while liveness killing it is neither. Adds the diagnostic that a crash loop under host pressure with no application error in the logs is a probe-tuning symptom, not an application bug — read the chart before the code.
+
 ## v0.4.0 — 2026-08-29 — Helm chart conventions
 
 Additive. One new standard in a new lane; nothing existing changed, so a consumer pinned to v0.3.1 upgrades without edits.

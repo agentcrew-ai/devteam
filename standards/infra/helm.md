@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 updated: 2026-08-29
 breaking: false
 ---
@@ -233,7 +233,39 @@ Every long-running workload declares both a readiness probe and a liveness probe
 - **Readiness** answers "should this pod receive traffic". Point it at an endpoint that fails when a dependency the request path needs is unavailable.
 - **Liveness** answers "should this pod be killed and restarted". Point it at something that only fails when the process is genuinely stuck. A liveness probe that checks a database restarts every pod in the deployment during a database blip, which converts a degraded service into an outage.
 
-Set `initialDelaySeconds` from the app's real cold start, or use a `startupProbe` and let the other two begin only after it passes. A liveness probe that fires during startup produces a crash loop that looks exactly like a broken image.
+### Set `timeoutSeconds` on every probe
+
+`timeoutSeconds` defaults to **1 second**, and that default is wrong for anything that talks to a network or a disk. A healthy process misses a 1-second HTTP deadline routinely: the host is paging, a neighbouring container is saturating the disk, the runqueue is deep, a garbage collector paused the thread that answers. None of that means the application is broken. It means the kubelet did not get a reply in a second, which is a different fact.
+
+**Set `timeoutSeconds` explicitly on every probe you declare, with a floor of 3 seconds.** Never leave it to the default. A probe that times out faster than the host's own worst-case scheduling latency is not measuring the application, it is measuring the node, and the failure it reports is a lie about which one broke.
+
+Raise the floor where the check does real work. A probe that opens a database connection or reads from disk needs a timeout sized to that work under load, not to its median.
+
+### Prefer a `startupProbe` to `initialDelaySeconds`
+
+Use a `startupProbe` for any container whose cold start is slow or variable — a large image, a framework that compiles assets or runs migrations on boot, a container that must pull before it runs, anything whose first-boot time differs from its steady state.
+
+`initialDelaySeconds` is a fixed guess at a variable number, so it is wrong in both directions and never right twice. Too short and liveness fires during a slow start, producing a crash loop that looks exactly like a broken image. Too long and every rollout eats the full delay even when the app was ready in two seconds.
+
+A `startupProbe` has neither failure mode. It polls, it stops the moment the app answers, and the kubelet does not run readiness or liveness at all until it succeeds.
+
+**Once a `startupProbe` exists, `initialDelaySeconds` on the other two probes is dead config. Remove it.** It governs nothing, and leaving it there tells the next reader that startup timing is handled somewhere it is not.
+
+### State a probe's tolerance as a budget
+
+`failureThreshold` x `periodSeconds` is a duration. Write the number down in seconds, in a comment, and pick it against the application's measured cold start or measured stall behaviour rather than against a round number.
+
+"Thirty failures at five seconds is a 150-second startup budget" is reviewable — someone can say the app boots in 40 seconds and 150 is generous, or that it boots in 3 minutes and 150 will crash-loop it. "`failureThreshold: 30`" is not reviewable, because the reader has to do the multiplication before they can disagree with it.
+
+### Liveness is strictly more forgiving than readiness
+
+Failing readiness removes the pod from the Service endpoints. It is cheap, and it reverses itself the moment the pod answers again. Failing liveness kills the container, which is neither.
+
+So liveness gets the longer timeout, the longer period, and the higher failure threshold. A chart where liveness is the stricter of the two has the consequences inverted: the destructive action fires first.
+
+### A crash loop with no application error is a probe-tuning symptom
+
+When a container restarts under host pressure and its own logs show no error — it was serving requests, then it was killed — read the probe configuration before reading the application code. That signature is a probe that reacted to the node, and the fix is in the chart. This is worth checking early, because the report that arrives will say the application is broken, and the pod's restart count will appear to agree.
 
 **`/` is not a healthcheck path for a static site.** A site built by a static-site generator serves files, and the container's root path may return a 404 rather than a page: the index can be published under a path prefix, or the server can be configured with a document root that has no top-level `index.html`. A readiness probe on `/` then never passes, the rollout stalls, and the deployment looks like a chart problem when it is a path problem. Point the probe at a file the build produces every time and confirm it with a request against the running container before shipping the chart. This applies to any workload whose routes come from generated output rather than from a route table you wrote.
 
