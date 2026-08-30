@@ -97,7 +97,7 @@ Org-wide standards live in `standards/`. Non-negotiable conventions every agent 
 - `data` - read `standards/data/` and `standards/frappe/` before drafting any schema or migration
 - `backend` - read `standards/api/` and `standards/security/` before implementing any endpoint
 - `architect` - read all of `standards/` when writing a WO Context section; surface standard conflicts
-- `infra-devops` - read `standards/security/` before wiring any deploy pipeline or secrets config
+- `infra-devops` - read `standards/infra/` and `standards/security/` before wiring any deploy pipeline, chart, or secrets config
 
 ### Updating a standard
 

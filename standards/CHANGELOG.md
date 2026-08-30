@@ -2,6 +2,16 @@
 
 Every standards change is a version event: bump the affected file's frontmatter `version` and add an entry here. Consumers pin to a tag and read this to know what moved on upgrade. See [`../EXTENSION.md`](../EXTENSION.md) for the scrub gate that governs what may enter core.
 
+## v0.4.0 — 2026-08-29 — Helm chart conventions
+
+Additive. One new standard in a new lane; nothing existing changed, so a consumer pinned to v0.3.1 upgrades without edits.
+
+- `infra/helm.md` — **new (v1.0.0).** How a workload is packaged as a Helm chart, versioned, configured per environment, and validated before it reaches a cluster. Chart lives with the app; `apiVersion: v2` and the required `Chart.yaml` fields; chart `version` versus `appVersion` as two different numbers with separate bump rules; the three configuration layers (`values.yaml` baseline that declares every key with a safe default, `values-<env>.yaml` carrying overrides only, runtime `--set` for what the build alone knows) with named values rather than array indices. Documents the mutable-tag-plus-runtime-override image pattern and the two conditions that make its audit trail hold, and recommends digest pinning for production as the forward direction rather than mandating it. Hard ban on secret material in charts and values files, with the reference pattern and a cross-reference to `security/sops-age.md`. TLS as a `kubernetes.io/tls` Secret held in one dedicated namespace and propagated by a reflector-class controller, described as a shape with the controller left to the overlay. Pod Security Admission labels starting at `enforce: baseline` with `audit`/`warn` at `restricted` so the ratchet is cheap, and `runAsNonRoot`, `fsGroup`, `seccompProfile` mandated for new charts with an audit recommendation for existing ones rather than a sweep. Standard label set plus one overlay-defined tenant label. GitOps as an app-of-apps root with per-tenant project scoping, `app-<workload>.yaml` child naming, and manual sync as the default. A lint-and-validate gate (`helm lint`, then `helm template` piped to a schema validator such as `kubeconform` with `-strict`) run against every environment's values file. Probe guidance separating readiness from liveness, including the trap that `/` is not a healthcheck path for a static site.
+
+The lane is `infra/`, not `helm/`, so future infrastructure conventions slot in beside it.
+
+`CLAUDE.md` § How agents use standards now lists `standards/infra/` in the `infra-devops` required-reading line.
+
 ## v0.3.1 — 2026-08-29 — retroactive scrub of the public core
 
 Patch. Three standards had entity-specific material that the scrub gate in [`../EXTENSION.md`](../EXTENSION.md) already forbids but that predated it being applied retroactively. Nothing behavioural changed, so a consumer pinned to v0.3.0 upgrades without edits.
