@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-updated: 2026-06-08
+version: 1.0.1
+updated: 2026-08-29
 breaking: false
 ---
 
@@ -26,21 +26,21 @@ never touches disk durably, git, or chat.
 - **`encrypted_regex: ^(data|stringData)$`** — encrypt only the secret-bearing
   fields of a manifest, leaving keys, metadata, and structure readable in the
   diff.
-- **One `&buddy` recipient per repo, not per app** (decided 2026-06-03). A single
+- **One `&buddy` recipient per repo, not per app.** A single
   repo-level CI age key encrypts all of that repo's apps; do not mint a key per
   app.
 
 Example `.sops.yaml`:
 ```yaml
 keys:
-  - &john age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  - &maintainer age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   - &buddy age1yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
 creation_rules:
   - path_regex: \.sops\.ya?ml$
     encrypted_regex: ^(data|stringData)$
     key_groups:
       - age:
-          - *john
+          - *maintainer
           - *buddy
 ```
 
@@ -49,7 +49,7 @@ creation_rules:
 - The **`&buddy` private key** lives in the workspace-scoped Buddy variable
   **`DEPLOY_AGE_KEY`** (per `ci-cd/pipeline-pattern.md`).
 - A **durable copy** of the `&buddy` key **and each human's age key** is backed up
-  to the **1Password break-glass vault**. Never in git, never in chat.
+  to your password manager's break-glass vault. Never in git, never in chat.
 - Buddy's encrypted variable store is an accepted at-rest home for the CI key
   (see the carve-out in `security/agent-secrets.md`).
 

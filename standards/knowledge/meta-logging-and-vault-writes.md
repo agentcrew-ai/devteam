@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-updated: 2026-06-18
+version: 1.0.1
+updated: 2026-08-29
 breaking: false
 ---
 
@@ -67,11 +67,11 @@ When no title is supplied, derive it from the first non-empty line of the conten
 
 - **Append-only files are append-only by construction, not by good intentions.** The write surface must make a rewrite/overwrite of `_log.md` / `_decisions.md` / `_patterns.md` *unreachable* — e.g. the only mutation exposed is "append a self-composed block," and any general `write_note`/replace primitive is not wired to these paths. A surface that *could* clobber them but promises not to is non-compliant.
 - **Compose the block; never accept a raw blob to write verbatim.** The surface owns the heading, the date, the field structure, and the trailing rule. Callers supply content for the fields, not the formatting — that is what keeps every entry well-formed.
-- **Sandboxed by default.** Programmatic writes are confined to a configured sandbox prefix (default `sandbox/`) via an explicit, env-gated switch (reference: `WILLPWR_ENFORCE_SANDBOX` / `WILLPWR_SANDBOX_PREFIX`). With enforcement on, any target outside the sandbox is refused *before any IO*. Path traversal (`..`) is rejected unconditionally, enforcement on or off.
+- **Sandboxed by default.** Programmatic writes are confined to a configured sandbox prefix (default `sandbox/`) via an explicit, env-gated switch (for example `<PREFIX>_ENFORCE_SANDBOX` / `<PREFIX>_SANDBOX_PREFIX`). With enforcement on, any target outside the sandbox is refused *before any IO*. Path traversal (`..`) is rejected unconditionally, enforcement on or off.
 - **Every write is dry-run-able.** The surface must support a `dry_run` that returns the exact block and resolved target it *would* write, touching nothing. This is the precondition for proving a write before trusting it.
-- **Create-only means create-only.** A note-creation surface refuses to overwrite an existing note. New notes carry valid frontmatter (type/title/status-enum per the LID/conventions spec) and an auto-allocated, collision-checked LID.
-- **Opening the sandbox to the live vault is a gated event.** Flipping enforcement off is deliberate and reviewed, with prerequisites met first: LID allocation must be collision-safe against a possibly-partial index (refuse allocation when the index is degraded/not ready), and create-surfaces must reject append-only meta paths so they can't be created with the wrong (frontmatter-fenced) shape. Until those guards exist, enforcement stays on.
-- **Prove it against the real vault before trusting it.** A new or changed write surface is dogfooded against a real-vault sandbox (sandbox-deny on a live path, dry-run, live create, create-only guard, all three append writers, append-only-growth) before it is relied on. Clean up dogfood artifacts afterward — they consume real LIDs.
+- **Create-only means create-only.** A note-creation surface refuses to overwrite an existing note. New notes carry valid frontmatter (type, title, and a status drawn from a closed enum, per your conventions spec) and an auto-allocated, collision-checked identifier.
+- **Opening the sandbox to the live vault is a gated event.** Flipping enforcement off is deliberate and reviewed, with prerequisites met first: identifier allocation must be collision-safe against a possibly-partial index (refuse allocation when the index is degraded/not ready), and create-surfaces must reject append-only meta paths so they can't be created with the wrong (frontmatter-fenced) shape. Until those guards exist, enforcement stays on.
+- **Prove it against the real vault before trusting it.** A new or changed write surface is dogfooded against a real-vault sandbox (sandbox-deny on a live path, dry-run, live create, create-only guard, all three append writers, append-only-growth) before it is relied on. Clean up dogfood artifacts afterward — they consume real identifiers.
 
 ## Why this exists
 
