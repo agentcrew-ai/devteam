@@ -2,6 +2,15 @@
 
 Every standards change is a version event: bump the affected file's frontmatter `version` and add an entry here. Consumers pin to a tag and read this to know what moved on upgrade. See [`../EXTENSION.md`](../EXTENSION.md) for the scrub gate that governs what may enter core.
 
+_v0.6.0 and v0.7.0 were drafted in parallel as v0.2.0 and v0.3.0 on a branch cut from `main`; they were renumbered when that branch merged into `develop` on 2026-10-06 so release labels stay monotonic. Only `v0.1.0` had been tagged, so no published label moved._
+
+## v0.7.0 — 2026-07-14 — CI↔VCS integration onboarding as a first-class precondition
+
+- `ci-cd/pipeline-pattern.md` (0.1.0 → 0.2.0) — **revised.** Codifies the onboarding precondition that a pipeline can only build a repo the CI tool can *reach*: before authoring a pipeline, verify the CI tool's VCS integration is authorized for the repo's org/namespace; if it can't, the environment owner installs/authorizes it (a tool-hosted git mirror is a fallback, not the default). Adds a new "Onboarding a repo to the CI tool" subsection, folds the CI↔VCS integration into guarantee 6's environment-owner list, and adds an anti-pattern against re-deriving repo reachability per pipeline. Surfaced from a real recurring gap: this precondition was undocumented, so sessions repeatedly re-derived "how does the CI tool reach this repo?" from scratch — sometimes wrongly assuming a mirror was required — burning a session each time. Non-breaking (additive; entity specifics stay in consumer overlays).
+
+## v0.6.0 — 2026-07-11 — add backup & recovery standard
+
+- `backup-dr/backup-and-recovery.md` — **new.** Stack-agnostic backup/DR contract (seven guarantees) plus a sanitized "logical dump → object storage on Kubernetes" reference. Codifies the rule "redundancy is not backup" and requires restore-verification on a recurring cadence, least-privilege secret-managed credentials, retention, and documented blast-radius independence. Surfaced from a real gap: a production CouchDB (Obsidian LiveSync backend) was found running with synchronous block-replication but **zero backups** — replication was masquerading as durability. Non-breaking (additive).
 ## v0.5.0 — 2026-08-29 — probe defaults for slow-booting containers
 
 Additive. `infra/helm.md` gains concrete probe rules; nothing existing was removed or reworded, so a consumer pinned to v0.4.0 upgrades without edits.
