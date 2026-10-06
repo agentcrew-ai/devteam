@@ -1,6 +1,6 @@
 ---
-version: 1.0.0
-updated: 2026-06-09
+version: 1.1.0
+updated: 2026-10-06
 breaking: false
 ---
 
@@ -43,24 +43,24 @@ Three tiers, work flowing one direction:
 
 ## Rules
 
-- **`main`/prod is PR-only — always.** No direct commit, no push to prod, no
-  direct or fast-forward merge from a local branch into prod. Cutting a branch
-  from `main` and fast-forwarding it back into `main` is exactly the violation
-  this standard forbids.
-- **Agents and Claude Code sessions must NEVER merge or push to the prod
-  branch.** This is absolute. An agent may *open* a PR; a human merges it, or
-  explicitly instructs the merge within that session. An agent never runs
-  `git push origin main`, `gh pr merge` against prod, or any equivalent on its
-  own initiative. If the only way to land a change is to touch prod directly —
-  stop and surface it.
-- **PRs are the default merge path everywhere.** Into prod they are mandatory,
-  no exception. Into `develop` they are strongly preferred — team discretion to
-  fast-forward a topic branch directly into `develop` is allowed; the prod gate
-  is never negotiable.
+- **`main`/prod is PR-only — always.** No direct commit, no push to prod, no direct or fast-forward merge from a local branch into prod. Cutting a branch from `main` and fast-forwarding it back into `main` is exactly the violation this standard forbids.
+- **Agents and Claude Code sessions must NEVER merge or push to the prod branch.** This is absolute. An agent may *open* a PR; a human merges it, or explicitly instructs the merge within that session. An agent never runs `git push origin main`, `gh pr merge` against prod, or any equivalent on its own initiative. If the only way to land a change is to touch prod directly — stop and surface it.
+- **PRs are the default merge path everywhere.** Into prod they are mandatory, no exception. Into `develop` they are preferred, and the agent that did the work opens *and* merges them itself (see "Ship by default" below). Where a repo has no PR flow, a direct `--no-ff` merge into `develop` is allowed. The prod gate is never negotiable.
 - **One topic branch per feature or release.** Don't stack unrelated changes.
-- **Create `develop` before feature work if it's missing** — off prod, as the
-  first step.
+- **Create `develop` before feature work if it's missing** — off prod, as the first step.
 - **Don't rename prod branches.** The standard governs the flow, not the name.
+
+## Ship by default (added in 1.1.0)
+
+Finished work that sits on a local branch is lost work. It can't be reviewed, deployed, or found by the next session, and it rots into merge conflicts. So below prod, agents ship without asking.
+
+- **Commit and push after every working change.** Never end a session, or a turn of real work, with uncommitted or unpushed changes. Check the diff for credentials before every commit; a suspected secret stops the commit and gets reported, never pushed.
+- **Merge `feature/*` → `develop` yourself** as soon as it works: open the PR and self-merge it, or merge directly with `--no-ff` where the repo has no PR flow. Don't wait for a human to review or merge into `develop`. Git can always revert.
+- **Review is automated and its result is accepted.** Before the merge, run an automated review of the diff (a code-review agent, plus the repo's tests or build when they are cheap). Fix anything that breaks the build or the feature. Log everything else (style, polish, refactors) as follow-up work and merge anyway. A review never blocks a merge on style.
+- **The bar is that it works.** Rough code that ships now and gets refactored later beats polished code that never leaves the branch.
+- **Conflicts and red builds are the exception.** Resolve trivial conflicts (both sides added independent lines, a changelog, a list). On a conflict that needs a design choice, or a build that fails, push the branch, leave it unmerged, and report it to the repo owner. Never force-push and never delete a branch that isn't fully merged.
+- **Prod stays deliberate.** `develop` → prod (and any further environment-promotion branches, such as `stage` → `prod`) is a human decision or an explicit instruction in that session. Ship-by-default never reaches prod.
+- **A repo's own agent instructions win.** If a repo's `CLAUDE.md` (or equivalent) says humans merge, agents push the branch and open the PR, and stop there. If merging to `develop` deploys to a live environment, the repo should say so in that file, so a session knows what a merge triggers.
 
 ## Enforcement
 
