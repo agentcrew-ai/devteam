@@ -20,7 +20,7 @@ Non-overlapping ownership keeps work orders clean and context tight.
 
 ## Adopt it
 
-Read **[`skills/project-bootstrap.md`](skills/project-bootstrap.md)** for the full path. In short:
+Adopting as a **team or organization** (wrapping the base team in your own layer repo with your SMEs, standards, and context)? Start with **[`TEAM-GUIDE.md`](TEAM-GUIDE.md)**. Wiring the roster into a **single repo**? Read **[`skills/project-bootstrap.md`](skills/project-bootstrap.md)** for the full path. In short:
 
 1. Add core as a submodule at `.devteam/`, pinned to a release tag.
 2. Symlink the agent files into `.claude/agents/` for discovery.
@@ -34,6 +34,7 @@ devteam/
 ├── .claude/agents/  # 11 agent definitions
 ├── skills/          # session rituals, project bootstrap, agent build, git workflow, recovery
 ├── standards/       # enforcement-gated, versioned conventions (api, data, security, git, ci-cd, ...)
+├── TEAM-GUIDE.md    # adopting as a team: stand up your own layer repo
 ├── EXTENSION.md     # the overlay + contribution contract
 ├── CONTRIBUTING.md  # PR flow + the scrub gate for upstreaming
 └── LICENSE          # MIT

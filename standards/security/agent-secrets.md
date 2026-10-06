@@ -1,6 +1,6 @@
 ---
-version: 1.1.0
-updated: 2026-06-09
+version: 1.1.1
+updated: 2026-08-29
 breaking: false
 ---
 
@@ -37,7 +37,7 @@ vault and nothing else.
    files, env dumps, logs, or chat. Move the *item*, reference the *path* —
    never transcribe the value.
 
-   > **Scope — Decision (approved 2026-06-09, RULING 3).**
+   > **Scope.**
    > "Read at runtime, never persist" governs **long-lived agents** (Claude Code
    > sessions, cron jobs). A **CI/CD platform's encrypted variable store** (e.g.
    > Buddy encrypted vars, the age key for SOPS decrypt) **is an accepted at-rest

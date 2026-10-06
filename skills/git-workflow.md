@@ -124,7 +124,7 @@ When a PR touches code (not just docs / agent prompts / skills), the **code-revi
 
 Security-sensitive changes (auth, secrets, network, dependencies) additionally get the **security** agent.
 
-### Automation — nudge hooks (v1.1, 2026-04-23)
+### Automation — nudge hooks
 
 Project-level hooks in `.claude/settings.json` nudge the foreman toward the right dispatch at the right moment. They do **not** auto-dispatch subagents (Claude Code hook primitives don't cleanly support that yet); they surface a `systemMessage` reminder so the foreman is less likely to forget.
 
