@@ -4,13 +4,20 @@ Every standards change is a version event: bump the affected file's frontmatter 
 
 _v0.6.0 and v0.7.0 were drafted in parallel as v0.2.0 and v0.3.0 on a branch cut from `main`; they were renumbered when that branch merged into `develop` on 2026-10-06 so release labels stay monotonic. Only `v0.1.0` had been tagged, so no published label moved._
 
-## v0.9.0 — 2026-10-17 — Frappe production install
+## v0.10.0 — 2026-10-17 — Frappe production install
 
 Additive. One new standard in the `frappe/` lane; nothing existing changed, so a consumer pinned to v0.8.0 upgrades without edits.
 
 - `frappe/install.md` — **new (v1.0.0).** How a new production Frappe/ERPNext site is installed on VMs. Bench on the host in production mode is the default; the official container images are allowed only for a Kubernetes target or many-site hosts, and the consumer records which. ERPNext runs on MariaDB, never PostgreSQL, with Frappe's required charset settings and the MariaDB release pinned to what Frappe documents for the target major. Covers splitting the app and database onto separate hosts (local-only `root`, a dedicated admin user and the site user granted from the app host only, 3306 closed by network policy), bench and datadir on protected data disks with VMs that ignore bootstrap/image changes, release-tag pinning, and secrets generated before install and pulled at boot by the VM's identity rather than baked into cloud-init. The site `encryption_key` is set before any data and never rotated, and is backed up apart from the dumps. A site is not ready for users until `bench doctor` is clean, an HTTPS login works, and a backup has been restored. Surfaced from a real gap: a fresh production ERPNext build in a government-cloud enclave had no standard saying bench or containers, and `patterns.md` only covers app code.
 
 `CLAUDE.md` § How agents use standards now lists `standards/frappe/install.md` in the `infra-devops` required-reading line, for Frappe hosts.
+||||||| 9e5f0b1
+
+## v0.9.0 — 2026-10-10 — Terraform conventions
+
+Additive. One new standard in the existing `infra/` lane; nothing existing changed, so a consumer pinned to v0.8.0 upgrades without edits.
+
+- `infra/terraform.md` — **new (v1.0.0).** Repo layout (one root per environment, modules without provider/backend blocks, non-secret config as root `locals` rather than `*.tfvars`). Providers pinned with the lockfile committed, the cloud environment set explicitly on every provider and backend for sovereign targets, and resource-provider registration left to bootstrap. Remote state with versioning, soft delete, a delete lock and identity-only auth, and the rule that state is a secret because secret inputs land in it. Terraform always runs as a dedicated non-human identity (federated from CI, or a ≤1-year certificate held in the password manager until CI exists) with role-assignment rights only under a condition limiting which roles it may grant. Secret inputs are `sensitive` variables fed from a SOPS file by a wrapper script. Idempotency as four layers led by a plan guard that refuses any plan containing a delete or replace unless the address is named, backed by `prevent_destroy`, cloud delete locks, and resource shapes that make replacement rare. Same-day reconciliation of any portal change, and a quiet `plan` must be empty.
 
 ## v0.8.0 — 2026-10-06 — ship by default below prod
 
